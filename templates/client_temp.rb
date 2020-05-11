@@ -5,55 +5,32 @@ require 'httparty'
 def main
   # GENERATE PUBLIC AND PRIVATE KEY VALUES
 
-  public_key = "#{n}+#{e}"
+  puts
+  puts "e: #{e} | N: #{n} | d: #{d}"
 
-  server_key = trade_keys(public_key)
-  server_n, server_e = server_key.split('+').map(&:to_i)
+  public_key = "#{e}+#{n}"
 
-  msg = 42
+  cipher = get_cipher_from_server(public_key)
 
-  puts "Message to Server: #{msg}"
-
-  # ENCRYPT CLIENT MESSAGE
-
-  server_cipher = trade_messages(encrypted)
-
-  puts "Cipher from Server: #{server_cipher}"
+  puts "Cipher from Server: #{cipher}"
 
   # DECRYPT SERVER MESSAGE
 
-  puts "Message from Server: #{decrypted}"
+  puts "Message from Server: #{message}"
+  puts
 end
 
-def trade_keys(public_key)
+def get_cipher_from_server(public_key)
   req_body = {
     body: {
       key: public_key 
-    }.to_json,
-    headers: {
-      "Content-Type": "application/json"
-    }
+    }.to_json
   }
   
-  results = HTTParty.post("http://localhost:4567/keys", req_body)
+  results = HTTParty.post("http://localhost:4567/message", req_body)
   body = JSON.parse(results, symbolize_names: true)
 
-  body[:key]
-end
-
-def trade_messages(msg)
-  req_body = {
-    body: {
-      message: msg
-    }.to_json,
-    headers: {
-      "Content-Type": "application/json"
-    }
-  }
-
-  results = HTTParty.get("http://localhost:4567/message", req_body)
-  body = JSON.parse(results, symbolize_names: true)
-  body[:message]
+  body[:cipher]
 end
 
 main
